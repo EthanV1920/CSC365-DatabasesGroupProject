@@ -29,8 +29,8 @@ gantt
     title Mortal Kombat Lookup
     dateFormat  MM-DD-YYYY
     section Prototyping
-    Explore Database Setup Options:a1, 03-08-2024, 2w
-    Design Schema of Data:a2, 03-08-2024, 1w
+    Explore Database Setup Options:a1, 04-08-2024, 2w
+    Design Schema of Data:a2, 04-08-2024, 1w
     Explore Software Stack Options: after a2, 1w
     section Development
     Implementation of Code      :a3, after a1, 6w
