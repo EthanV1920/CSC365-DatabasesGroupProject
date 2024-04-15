@@ -2,6 +2,14 @@
 
 ### Contributors: Victoria Asencio-Clemens, Isaac Lake, and Ethan Vosburg
 
+## Table of Contents
+- **[Introduction](#introduction)**<be>
+- **[Goals](#goals)**<br>
+- **[Project Planning](#project-planning)**<br>
+
+## External Links
+- **[Customer Stories](main/docs/user_stories.md)**
+
 ## Introduction
 
 For the group project, we will be building the back-end database for a popular video game, Mortal Kombat! For each player, we will track characters unlocked and xp. The read-and-write operations come into play when leveling up or selecting characters 
