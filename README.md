@@ -8,7 +8,7 @@
 - **[Project Planning](#project-planning)**<br>
 
 ## External Links
-- **[Customer Stories](main/docs/user_stories.md)**
+- **[Customer Stories](docs/user_stories.md)**
 
 ## Introduction
 
