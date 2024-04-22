@@ -103,7 +103,7 @@ Runs an algrithm to match you up with a properly skilled opponent
 
 ### 2.2. End Match - `/match/end/{match_id}` (POST)
 
-Ends the match updating data, achievements, scores, etc 
+Ends the match updating data, achievements, scores, levels, etc 
 
 **Response**
 
@@ -117,11 +117,11 @@ Ends the match updating data, achievements, scores, etc
 
 ## 3. Account Handling
 
-The API calls are made that manage:
-1. `Get Barrel Purchase Plan`
-2. `Deliver Barrels`
+The API calls are made that manage account activities:
+1. `New Account`
+2. `Delete Account`
 
-### 3.1. Get Barrel Purchase Plan - `/barrels/plan` (POST)
+### 3.1. New Account - `/account/new` (POST)
 
 Gets the plan for purchasing wholesale barrels. The call passes in a catalog of available barrels
 and the shop returns back which barrels they'd like to purchase and how many.
@@ -131,11 +131,8 @@ and the shop returns back which barrels they'd like to purchase and how many.
 ```json
 [
   {
-    "sku": "string",
-    "ml_per_barrel": "integer",
-    "potion_type": "integer",
-    "price": "integer",
-    "quantity": "integer"
+    "username": "string",
+    "region": "string"
   }
 ]
 ```
@@ -145,93 +142,22 @@ and the shop returns back which barrels they'd like to purchase and how many.
 ```json
 [
     {
-        "sku": "string", /* Must match a sku from the catalog just passed in this call */
-        "quantity": "integer" /* A number between 1 and the quantity available for sale */
+        "user_id": "number"
     }
 ]
 ```
 
-### 3.2. Deliver Barrels - `/barrels/deliver/{order_id}` (POST)
+### 3.2. Delete account - `/acount/delete/{user_id}` (POST)
 
-Posts delivery of barrels. order_id is a unique value representing
-a single delivery.
-
-**Request**:
-
-```json
-[
-  {
-    "sku": "string",
-    "ml_per_barrel": "integer",
-    "potion_type": "integer",
-    "price": "integer",
-    "quantity": "integer"
-  }
-]
-```
-
-### 4. Admin Functions
-
-### 4.1. Reset Shop - `/admin/reset` (POST)
-
-A call to reset shop will delete all inventory and in-flight carts and reset gold back to 100. The
-shop should take this as an opportunity to remove all of their inventory and set their gold back to
-100 as well.
-
-### 5. Info Functions
-
-### .1. Current time - `/info/current_time` (POST)
-
-Shares what the latest time (in game time) is. 
+Deletes the entire account from the database
 
 **Request**:
 
 ```json
 [
   {
-    "day": "string",
-    "hour": "number"
+    "Success": "boolean"
   }
 ]
 ```
 
-### 6. Audit Functions
-
-### 6.1. Get Inventory Summary - `/inventory/audit` (GET)
-
-Return a summary of your current number of potions, ml, and gold.
-
-**Response**:
-```json
-{
-  "number_of_potions": "number",
-  "ml_in_barrels": "number",
-  "gold": "number"
-)
-```  
-
-### 6.2 Get capacity purchase plan - `/inventory/plan` (POST)
-
-What additional potion or ML capacity the shop would like to buy. Called once a day.
-You start with 1 capacity of potion and 1 capacity of ml storage. Each potion capacity
-allows 50 potion storage. Each ml capacity allows 10k of ml storage.
-
-**Response**:
-```json
-{
-  "potion_capacity": "number",
-  "ml_capacity": "number"
-}
-```
-
-### 6.3 Deliver capacity purchased - `/inventory/deliver` (POST)
-
-Delivers capacity purchased back to shop. Called when a capacity purchase succeeds.
-
-**Request**:
-```json
-{
-  "potion_capacity": "number",
-  "ml_capacity": "number"
-}
-```

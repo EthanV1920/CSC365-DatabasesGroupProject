@@ -12,6 +12,7 @@
 
 - **Journalist**
     - As a game journalist, I hope there is a difficulty slider for the PVE campaign, So that I can quickly complete the game and get the fastest story out there.
+
 - **Dreamer**
     - As someone with big dreams for competative play, I hope that I can quickly access all of the meta options. So that I can use the guide I found online to become ranked 1 in the world.
 
