@@ -1,4 +1,4 @@
-# API Specification for Potion Exchange Compatible Shops
+# API Specification for Fighting Game Backend
 
 ## 1. Shop Purchase
 
