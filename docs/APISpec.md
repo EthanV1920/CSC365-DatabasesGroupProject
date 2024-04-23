@@ -3,43 +3,32 @@
 ## 1. Shop Purchase
 
 The API calls are made in this sequence when making a purchase:
-1. `Get Inventory`
-2. `Make Purchase`
-3. `New Cart`
-4. `Add Item to Cart` (Can be called multiple times)
 
+1. `Get Inventory`
+2. `New Cart`
+3. `Add Item to Cart` (Can be called multiple times)
+4. `Make Purchase`
 
 ### 1.1. Get Inventory - `/inventory/` (GET)
 
-Retrieves the inventory of the player to check whether they have the currency to make a purchase and to confirm that they do not have the item already.
+Get the catalog of available items that the player can buy with all the attributes
 
-
-### 1.2. Make Purchase - `/carts/completePurchase/{cart_id}` (POST)
-
-Uses the inventory to determine if a purchase is viable and if so updates the inventory to reflect the purchase
-**Request**:
+**Response**:
 
 ```json
 [
   {
-    "Item": "string",
-    "Inventory_id": "number",
-    "cart_id": "number"
+    "item_name": "string",
+    "item_sku": "string",
+    "price": "integer"
   },
   {
     ...
   }
 ]
 ```
-**Response**:
 
-```json
-{
-    "success": "boolean"
-}
-```
-
-### 1.3. New Cart - `/carts/` (POST)
+### 1.2. New Cart - `/carts/` (POST)
 
 Creates a new cart for a specific customer.
 
@@ -47,8 +36,8 @@ Creates a new cart for a specific customer.
 
 ```json
 {
-  "player_id": "number",
-  "inventory_id": "number",
+  "player_id": "integer",
+  "inventory_id": "integer",
 }
 ```
 
@@ -58,17 +47,17 @@ Creates a new cart for a specific customer.
 {
     "cart_id": "string" /* This id will be used for future calls to add items and checkout */
 }
-``` 
+```
 
-### 1.4. Add Item to Cart - `/carts/{cart_id}/items/{item_sku}` (PUT)
+### 1.2. Add Item to Cart - `/carts/{cart_id}/items/{item_sku}` (PUT)
 
-Updates the quantity of a specific item in a cart. 
+Updates the quantity of a specific item in a cart.
 
 **Request**:
 
 ```json
 {
-  "item_id": "number"
+  "item_id": "integer"
 }
 ```
 
@@ -80,37 +69,66 @@ Updates the quantity of a specific item in a cart.
 }
 ```
 
+### 1.4. Make Purchase - `/carts/completePurchase/{cart_id}` (POST)
+
+Uses the inventory to determine if a purchase is viable and if so updates the inventory to reflect the purchase
+
+**Request**:
+
+```json
+[
+  {
+    "item_sku": "sting",
+    "price": "integer"
+  },
+  {
+    ...
+  }
+]
+```
+
+**Response**:
+
+```json
+{
+    "success": "boolean"
+}
+```
 
 ## 2. Match Handling
 
 The API calls are made in this sequence when the matches happen:
+
 1. `Start Match`
 2. `End Match`
 
-### 2.1. Start Match - `/match/start` (POST)
+### 2.1. Start Match - `/match/start/` (POST)
 
-Runs an algrithm to match you up with a properly skilled opponent
+Runs an algorithm to match you up with a properly skilled opponent
+
 **Response**:
 
 ```json
 [
     {
-        "Match_id": "number",
-        "Oponnent_id": "number"
+        "match_id": "integer",
+        "opponent_id": "integer"
     }
 ]
 ```
 
 ### 2.2. End Match - `/match/end/{match_id}` (POST)
 
-Ends the match updating data, achievements, scores, levels, etc 
+Ends the match updating match table with who won and who lost
 
-**Response**
+**Response**:
 
 ```json
 [
     {
-        "Success": "Boolean",
+        "success": "boolean",
+        "winner": "player_id",
+        "loser": "player_id"
     }
 ]
 ```
@@ -118,8 +136,11 @@ Ends the match updating data, achievements, scores, levels, etc
 ## 3. Account Handling
 
 The API calls are made that manage account activities:
+
 1. `New Account`
 2. `Delete Account`
+3. `User Update Account`
+4. `Game Update Account`
 
 ### 3.1. New Account - `/account/new` (POST)
 
@@ -132,6 +153,7 @@ and the shop returns back which barrels they'd like to purchase and how many.
 [
   {
     "username": "string",
+    "email": "string",
     "region": "string"
   }
 ]
@@ -142,12 +164,13 @@ and the shop returns back which barrels they'd like to purchase and how many.
 ```json
 [
     {
-        "user_id": "number"
+        "user_id": "integer",
+        "success": "boolean"
     }
 ]
 ```
 
-### 3.2. Delete account - `/acount/delete/{user_id}` (POST)
+### 3.2. Delete account - `/account/delete/{user_id}` (POST)
 
 Deletes the entire account from the database
 
@@ -161,3 +184,58 @@ Deletes the entire account from the database
 ]
 ```
 
+### 3.3. Update Account - `/account/user_update/{user_id}` (POST)
+
+Update information on the user account information
+
+**Request**:
+
+```json
+[
+  {
+    "field": "username/email/region",
+    "new_value": "string"
+  },
+  {
+    ...
+  }
+]
+```
+
+**Response**:
+
+```json
+[
+  {
+    "success": "boolean"
+  }
+]
+```
+
+### 3.4 Game Update Account - `/account/game_update/{user_id}` (POST)
+
+Allow the game to update player attributes as they win and lose games will take in the gains and losses and then reflect those changes in the database.
+
+**Request**:
+
+```json
+[
+  {
+    "attribute_id": "string",
+    "updated_value": "string"
+  },
+  {
+    ...
+  }
+]
+```
+
+**Response**:
+
+```json
+[
+  {
+    "success": "boolean"
+  }
+]
+```
