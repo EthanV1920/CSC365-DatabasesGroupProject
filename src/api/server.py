@@ -2,17 +2,18 @@ from fastapi import FastAPI, exceptions
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 # from src.api import carts, catalog, bottler, barrels, admin, info, inventory
+from src.api import characters
 import json
 import logging
 import sys
 from starlette.middleware.cors import CORSMiddleware
 
 description = """
-Central Coast Cauldrons is the premier ecommerce site for all your alchemical desires.
+The premiere place to view all the information you could ever want on Mortal Kombat.
 """
 
 app = FastAPI(
-    title="Central Coast Cauldrons",
+    title="Mortal DB",
     description=description,
     version="0.0.1",
     terms_of_service="http://example.com/terms/",
@@ -22,6 +23,7 @@ app = FastAPI(
     },
 )
 
+# TODO: Change to project specific
 origins = ["https://potion-exchange.velupierce@calpoly.edurcel.app"]
 
 app.add_middleware(
@@ -32,7 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# app.include_router(inventory.router)
+app.include_router(characters.router)
 # app.include_router(carts.router)
 # app.include_router(catalog.router)
 # app.include_router(bottler.router)
@@ -55,4 +57,4 @@ async def validation_exception_handler(request, exc):
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to the Central Coast Cauldrons."}
+    return {"message": "Welcome to Mortal DB"}
