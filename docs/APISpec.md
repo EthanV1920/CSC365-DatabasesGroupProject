@@ -139,8 +139,7 @@ The API calls are made that manage account activities:
 
 1. `New Account`
 2. `Delete Account`
-3. `User Update Account`
-4. `Game Update Account`
+3. `Game Update Account`
 
 ### 3.1. New Account - `/account/new` (POST)
 
@@ -153,8 +152,6 @@ and the shop returns back which barrels they'd like to purchase and how many.
 [
   {
     "username": "string",
-    "email": "string",
-    "region": "string"
   }
 ]
 ```
@@ -165,7 +162,7 @@ and the shop returns back which barrels they'd like to purchase and how many.
 [
     {
         "user_id": "integer",
-        "success": "boolean"
+        "success": "str"
     }
 ]
 ```
@@ -179,40 +176,13 @@ Deletes the entire account from the database
 ```json
 [
   {
-    "Success": "boolean"
+    "Success": "str"
   }
 ]
 ```
 
-### 3.3. Update Account - `/account/user_update/{user_id}` (POST)
 
-Update information on the user account information
-
-**Request**:
-
-```json
-[
-  {
-    "field": "username/email/region",
-    "new_value": "string"
-  },
-  {
-    ...
-  }
-]
-```
-
-**Response**:
-
-```json
-[
-  {
-    "success": "boolean"
-  }
-]
-```
-
-### 3.4 Game Update Account - `/account/game_update/{user_id}` (POST)
+### 3.3 Game Update Account - `/account/game_update/{user_id}` (POST)
 
 Allow the game to update player attributes as they win and lose games will take in the gains and losses and then reflect those changes in the database.
 
