@@ -182,7 +182,7 @@ Deletes the entire account from the database
 ```
 
 
-### 3.3 Game Update Account - `/account/game_update/{user_id}` (POST)
+### 3.3 Game Update Level - `/account/game_update/{user_id}` (POST)
 
 Allow the game to update player attributes as they win and lose games will take in the gains and losses and then reflect those changes in the database.
 
@@ -191,11 +191,8 @@ Allow the game to update player attributes as they win and lose games will take 
 ```json
 [
   {
-    "attribute_id": "string",
-    "updated_value": "string"
-  },
-  {
-    ...
+    "username": "string",
+    "level": "integer"
   }
 ]
 ```

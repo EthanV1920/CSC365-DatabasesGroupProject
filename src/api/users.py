@@ -44,3 +44,16 @@ def delete_user(username: str = ""):
                                """, {"username": username})
 
     return {"success": "Successfully deleted user from database"}
+
+@router.put("/userUpdate/", tags=["userUpdate"])
+def update_user_level(username: str = "", level: int = 1):
+    with db.engine.begin() as connection:
+        user = connection.execute("SELECT name FROM users WHERE username = :username", {"username": username}).fetchone()
+        if user is None:
+            return {"error": "User not found"}
+        else:
+            connection.execute("""
+                               UPDATE users SET level = :level WHERE username = :username
+                               """, {"username": username, "level": level})
+
+    return {"success": "Successfully updated user's level"}
