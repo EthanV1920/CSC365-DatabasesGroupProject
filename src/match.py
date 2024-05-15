@@ -32,3 +32,16 @@ def dbstats(username: str = ""):
                     "opponent_id": opponent
                 }
             ]
+    
+@router.put("/match/updateWinner/", tags=["matchUpdate"])
+def match_end(winner: int, match_id: int):
+    with db.engine.begin() as connection:
+        match = connection.execute("SELECT match_id FROM matches WHERE match_id = :match_id", {"match_id": match_id}).fetchone()
+        if match is None:
+            return {"error": "Match not found"}
+        else:
+            connection.execute("""
+                               UPDATE matches SET result = :winner WHERE match_id = :match_id
+                               """, {"winner": winner, "match_id": match_id})
+
+    return {"success": "Successfully updated match"}

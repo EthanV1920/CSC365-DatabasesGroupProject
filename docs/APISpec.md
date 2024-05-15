@@ -106,6 +106,15 @@ The API calls are made in this sequence when the matches happen:
 
 Runs an algorithm to match you up with a properly skilled opponent
 
+
+**Request**
+```json
+{
+    "Winner": "int",
+    "match_id": "int"
+}
+```
+
 **Response**:
 
 ```json
@@ -126,7 +135,6 @@ Ends the match updating match table with who won and who lost
 ```json
 [
     {
-        "success": "boolean",
         "winner": "player_id",
         "loser": "player_id"
     }
