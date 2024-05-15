@@ -140,6 +140,8 @@ The API calls are made that manage account activities:
 1. `New Account`
 2. `Delete Account`
 3. `Game Update Account`
+4. `Log on`
+5. `Log off`
 
 ### 3.1. New Account - `/account/new` (POST)
 
@@ -182,7 +184,7 @@ Deletes the entire account from the database
 ```
 
 
-### 3.3 Game Update Level - `/account/game_update/{user_id}` (POST)
+### 3.3 Game Update Level - `/account/game_update/{username}` (POST)
 
 Allow the game to update player attributes as they win and lose games will take in the gains and losses and then reflect those changes in the database.
 
@@ -193,6 +195,54 @@ Allow the game to update player attributes as they win and lose games will take 
   {
     "username": "string",
     "level": "integer"
+  }
+]
+```
+
+**Response**:
+
+```json
+[
+  {
+    "success": "boolean"
+  }
+]
+```
+
+### 3.4 Log on - `/account/Logon/{username}` (POST)
+
+Turns on a online boolean that is used for matchmaking
+
+**Request**:
+
+```json
+[
+  {
+    "username": "string"
+  }
+]
+```
+
+**Response**:
+
+```json
+[
+  {
+    "success": "boolean"
+  }
+]
+```
+
+### 3.5 Log off - `/account/Logoff/{username}` (POST)
+
+Turns off a online boolean that is used for matchmaking
+
+**Request**:
+
+```json
+[
+  {
+    "username": "string"
   }
 ]
 ```

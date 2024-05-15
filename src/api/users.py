@@ -12,7 +12,6 @@ router = APIRouter()
 @router.get("/userNew/", tags=["userNew"])
 def dbstats(username: str = ""):
     
-
     with db.engine.begin() as connection:
         name = connection.execute("SELECT name FROM users WHERE username = :username", {"username": username}).fetchone()
         if name is None:
@@ -31,6 +30,7 @@ def dbstats(username: str = ""):
                     "success": "Successfully added user to database"
                 }
             ]
+
     
 @router.delete("/userDelete/", tags=["userDelete"])
 def delete_user(username: str = ""):
@@ -60,7 +60,7 @@ def update_user_level(username: str = "", level: int = 1):
 
 
 @router.put("/userLogin/", tags=["userLogin"])
-def login_character(username: str = ""):
+def login_user(username: str = ""):
     with db.engine.begin() as connection:
         user_id = connection.execute("SELECT user_id FROM users WHERE name = :name", {"name": username}).fetchone()
         if user_id is None:
