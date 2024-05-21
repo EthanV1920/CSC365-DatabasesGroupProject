@@ -2,7 +2,7 @@ from fastapi import FastAPI, exceptions
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 # from src.api import carts, catalog, bottler, barrels, admin, info, inventory
-from src.api import characters
+from src.api import characters, shop, users, match, purchase
 import json
 import logging
 import sys
@@ -35,6 +35,10 @@ app.add_middleware(
 )
 
 app.include_router(characters.router)
+app.include_router(shop.router)
+app.include_router(users.router)
+app.include_router(match.router)
+app.include_router(purchase.router)
 # app.include_router(carts.router)
 # app.include_router(catalog.router)
 # app.include_router(bottler.router)

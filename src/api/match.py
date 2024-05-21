@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 # from pydantic import BaseModel
-# from src.api import auth
+from src.api import auth
 # from enum import Enum
 import sqlalchemy
 
