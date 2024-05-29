@@ -13,12 +13,6 @@ client = OpenAI()
 router = APIRouter()
 
 GPT_MODEL = "gpt-3.5-turbo"
-ranking = []
-
-def create_rank(rank, name, reason):
-    global ranking
-    ranking.append({"rank": rank, "name": name, "reason": reason})
-
 
 @router.get("/recommendations/", tags=["recommendations"])
 def getRec(story: str = ""):
@@ -107,16 +101,16 @@ def getRec(story: str = ""):
 
     if story != "":
         response = chat_completion_request(messages, tools, model)
-        global ranking
         response_message = response.choices[0].message
         print(f"This is the response string:\n{response_message}\n")
         tool_calls = response_message.tool_calls
 
+        ranking = []
         for i, tool_call in enumerate(tool_calls):
             rank = eval(tool_call.function.arguments)['rank']
             name = eval(tool_call.function.arguments)['name']
             reason = eval(tool_call.function.arguments)['reason']
-            create_rank(rank, name, reason)
+            ranking.append({"rank": rank, "name": name, "reason": reason})
 
 
 
