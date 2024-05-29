@@ -2,7 +2,7 @@ from fastapi import FastAPI, exceptions
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 # from src.api import carts, catalog, bottler, barrels, admin, info, inventory
-from src.api import characters, shop, users, match, purchase
+from src.api import characters, shop, users, match, purchase, ai
 import json
 import logging
 import sys
@@ -24,16 +24,17 @@ app = FastAPI(
 )
 
 # TODO: Change to project specific
-origins = ["https://potion-exchange.velupierce@calpoly.edurcel.app"]
+# origins = ["https://potion-exchange.velupierce@calpoly.edurcel.app"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    # allow_origins=origins,
     allow_credentials=True,
     allow_methods=["GET", "OPTIONS"],
     allow_headers=["*"],
 )
 
+app.include_router(ai.router)
 app.include_router(characters.router)
 app.include_router(shop.router)
 app.include_router(users.router)
