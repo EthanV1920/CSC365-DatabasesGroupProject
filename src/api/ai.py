@@ -1,18 +1,18 @@
+from pathlib import Path
 from openai import OpenAI
 from fastapi import APIRouter, Depends, Request
-# from pydantic import BaseModel
 from src.api import auth
-# from enum import Enum
 import sqlalchemy
+# from pydantic import BaseModel
+# from enum import Enum
 
 from src import database as db
-# from typing import Dict
-
 
 client = OpenAI()
 router = APIRouter()
 
 GPT_MODEL = "gpt-3.5-turbo"
+
 
 @router.get("/recommendations/", tags=["recommendations"])
 def getRec(story: str = ""):
@@ -28,9 +28,8 @@ def getRec(story: str = ""):
     with db.engine.begin() as connection:
         characters = connection.execute(character_sql).mappings().fetchall()
 
-    # print(characters)
-
     model="gpt-3.5-turbo"
+
     messages=[
             {
                 "role": "system",
@@ -56,12 +55,6 @@ def getRec(story: str = ""):
                 "role": "system",
                 "content": "An example of a trait combination that would be good for an advanced player would be, high control, with there being a trade off between damage and agility."
             },
-            # {
-            #     "role": "system",
-            #     "content": """Please format the response with this json formatting
-            #     {"character1":{"rank":1,"name":"name1","reason":"reason1"},"character2":{"rank":2,"name":"name2","reason":"reason2"},"character3":{"rank":3,"name":"name3","reason":"reason3"}}
-            #     """
-            # },
             {
                 "role": "system",
                 "content": f"{characters}"
@@ -71,6 +64,7 @@ def getRec(story: str = ""):
                 "content": story
             }
         ]
+
     tools=[
             {
                 "type": "function",
@@ -118,6 +112,34 @@ def getRec(story: str = ""):
         return ranking
     else:
         return "OK"
+
+@router.get("/insult/", tags=["insult"])
+def getInsult(player: str = "", game_end_state: str = "", opponent: str = ""):
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful ai that will assist a user who is playing Mortal Kombat 11 in insulting their opponent in a tongue-in-cheek way. You will be given the oponents name and weather or not the user won as well as the player that the user was using. You must create an insult that is witty and funny that can be put though a text to speech program and be said out loud. The response should only contain the insult."
+        },
+        {
+            "role": "user",
+            "content": f"My player was {player} and I {game_end_state} the match, my opponent was {opponent}. Can you help me come up with a funny insult that I could tell the person who I played with?"
+        }
+
+    ]
+
+    insult = chat_completion_request(messages)
+    print(f"Generated Instul: {insult}")
+
+    speech_file_path = Path(__file__).parent / "speech.mp3"
+    response = client.audio.speech.create(
+            model="tts-1",
+            voice="alloy",
+            input=insult
+            )
+
+    response.stream_to_file(speech_file_path)
+
+    return insult
 
 
 def chat_completion_request(messages, tools=None, model=GPT_MODEL):
