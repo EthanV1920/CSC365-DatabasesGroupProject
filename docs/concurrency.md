@@ -80,3 +80,35 @@ sequenceDiagram
     r->>+a: You bought item 1
     Note left of a: Only Item 1 was paid for but<br/>Alice now has item 1 and 2
 ```
+
+
+## 3 Concurrent Match Updating
+
+### Potential Problem
+
+If two users each say that they won the match then the database would update twice allowing a malicious player to update the match in their favor by sending an update request after the winning player has requested an update.
+
+### Potential Solution
+
+Implementing a locking field in the database and ticking that once there is an update would deny future requests to change the match which would protect against malicious actors and possible data loss. 
+
+```mermaid
+sequenceDiagram
+    autonumber
+    box purple Backend
+        participant d as database
+        participant r as render
+    end
+    box blue Users
+        actor a as Alice
+        actor b as Bob
+    end
+
+    a->>+r: I won the match
+    b->>+r: I won the match
+    r->>+d: Alice won the match
+    r->>+d: Bob won the match
+    Note right of d: In database, it shows that<br/>Bob won the match
+    r->>+a: Match updated
+    r->>+b: Match updated
+```
