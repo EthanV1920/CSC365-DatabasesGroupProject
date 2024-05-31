@@ -43,3 +43,40 @@ sequenceDiagram
     r-->>+a: You are now player 1
     r-->>+j: You are now player 1
 ```
+
+
+## 2 Adding an Item While Checking Out
+
+### Potential Problem
+
+If a user were to try and add an item to the cart, while they were checking out, they could potentially be able to get items they did not pay for by sending request while the total is being calculated. 
+
+### Potential Solution
+
+This could be solved by putting a lock on the cart so that it cannot be modified after the checkout process has begun. This would mean that subsequent requests to add items to the cart would be negated and the total cost of the items could be calculated successfully. 
+
+```mermaid
+sequenceDiagram
+    autonumber
+    box purple Backend
+        participant d as database
+        participant r as render
+    end
+    box blue Users
+        actor a as Alice
+    end
+
+    a->>+r: I would like to add item 1 to my cart
+    r->>+d: Add item 1 to cart
+    d->>+r: OK
+    a->>+r: I would like to check out
+    r->>+d: What items were in the cart?
+    d->>+r: Item 1 was in the cart
+    a->>+r: I would like to add item 2 to my cart
+    r->>+d: Add item 2 to cart
+    d->>+r: OK
+    r->>+d: Deduct the cost of item 1
+    d->>+r: OK
+    r->>+a: You bought item 1
+    Note left of a: Only Item 1 was paid for but<br/>Alice now has item 1 and 2
+```
