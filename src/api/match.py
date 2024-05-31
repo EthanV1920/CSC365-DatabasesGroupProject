@@ -45,3 +45,9 @@ def match_end(winner: int, match_id: int):
                                """, {"winner": winner, "match_id": match_id})
 
     return {"success": "Successfully updated match"}
+
+
+@router.get("/matchmaking/", tags=["matching"])
+def getMatch():
+    print("Hello Matchmaking")
+

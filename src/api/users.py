@@ -9,11 +9,13 @@ from src import database as db
 
 router = APIRouter()
 
+
 @router.get("/userNew/", tags=["userNew"])
 def dbstats(username: str = ""):
-    
+
     with db.engine.begin() as connection:
-        name = connection.execute("SELECT name FROM users WHERE username = :username", {"username": username}).fetchone()
+        name = connection.execute("SELECT name FROM users WHERE username = :username", {
+                                  "username": username}).fetchone()
         if name is None:
             return {"error": "User not found"}
         else:
@@ -21,21 +23,21 @@ def dbstats(username: str = ""):
                                INSERT INTO users (username, level)
                                VALUES (:username, 1)
                                RETURNING user_id
-                               """
-                               , {"username": username}).fetchone()
+                               """, {"username": username}).fetchone()
 
     return [
-                {
-                    "user_id": id,
-                    "success": "Successfully added user to database"
-                }
-            ]
+        {
+            "user_id": id,
+            "success": "Successfully added user to database"
+        }
+    ]
 
-    
+
 @router.delete("/userDelete/", tags=["userDelete"])
 def delete_user(username: str = ""):
     with db.engine.begin() as connection:
-        user = connection.execute("SELECT name FROM users WHERE username = :username", {"username": username}).fetchone()
+        user = connection.execute("SELECT name FROM users WHERE username = :username", {
+                                  "username": username}).fetchone()
         if user is None:
             return {"error": "User not found"}
         else:
@@ -45,10 +47,12 @@ def delete_user(username: str = ""):
 
     return {"success": "Successfully deleted user from database"}
 
+
 @router.put("/userUpdate/", tags=["userUpdate"])
 def update_user_level(username: str = "", level: int = 1):
     with db.engine.begin() as connection:
-        user = connection.execute("SELECT name FROM users WHERE username = :username", {"username": username}).fetchone()
+        user = connection.execute("SELECT name FROM users WHERE username = :username", {
+                                  "username": username}).fetchone()
         if user is None:
             return {"error": "User not found"}
         else:
@@ -62,7 +66,8 @@ def update_user_level(username: str = "", level: int = 1):
 @router.put("/userLogin/", tags=["userLogin"])
 def login_user(username: str = ""):
     with db.engine.begin() as connection:
-        user_id = connection.execute("SELECT user_id FROM users WHERE name = :name", {"name": username}).fetchone()
+        user_id = connection.execute("SELECT user_id FROM users WHERE name = :name", {
+                                     "name": username}).fetchone()
         if user_id is None:
             return {"error": "Character not found"}
         else:
@@ -72,10 +77,12 @@ def login_user(username: str = ""):
 
     return {"success": "Successfully logged in user"}
 
+
 @router.put("/userLogout/", tags=["userLogout"])
 def logout_user(username: str = ""):
     with db.engine.begin() as connection:
-        user_id = connection.execute("SELECT user_id FROM users WHERE name = :name", {"name": username}).fetchone()
+        user_id = connection.execute("SELECT user_id FROM users WHERE name = :name", {
+                                     "name": username}).fetchone()
         if user_id is None:
             return {"error": "User not found"}
         else:
