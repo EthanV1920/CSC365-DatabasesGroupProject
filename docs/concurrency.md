@@ -38,7 +38,7 @@ sequenceDiagram
     end
     critical
         r->>+d: Make John Player 1
-        d->>-r: Alice is now Player 1
+        d->>-r: John is now Player 1
     end
     r-->>+a: You are now player 1
     r-->>+j: You are now player 1
