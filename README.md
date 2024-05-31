@@ -3,12 +3,13 @@
 ### Contributors: Victoria Asencio-Clemens, Isaac Lake, and Ethan Vosburg
 
 ## Table of Contents
-- **[Introduction](#introduction)**<be>
-- **[Goals](#goals)**<br>
-- **[Project Planning](#project-planning)**<br>
+- **[Introduction](#introduction)**<br/>
+- **[Goals](#goals)**<br/>
+- **[Project Planning](#project-planning)**<be>
 
 ## External Links
 - **[Customer Stories](docs/user_stories.md)**
+- **[Concurrency](docs/concurrency.md)**
 
 ## Introduction
 
