@@ -1,8 +1,10 @@
+import pygame
 from pathlib import Path
 from openai import OpenAI
 from fastapi import APIRouter, Depends, Request
 from src.api import auth
 import sqlalchemy
+import json
 # from pydantic import BaseModel
 # from enum import Enum
 
@@ -28,47 +30,47 @@ def getRec(story: str = ""):
     with db.engine.begin() as connection:
         characters = connection.execute(character_sql).mappings().fetchall()
 
-    model="gpt-3.5-turbo"
+    model = "gpt-3.5-turbo"
 
-    messages=[
-            {
-                "role": "system",
-                "content": "You will be given a  users story who is trying to figure out what character they should play from Mortal Kombat 11. Assume this user is unfamiliar with the game and the different characters. You will be given a list of all of the characters along with 3 traits and rankings for each of the traits. You must recommend 3 characters that the player should try."
-            },
-            {
-                "role": "system",
-                "content": "Here is an explanation of the agility trait: This trait refers to how easy it is to move around the stage during a fight."
-            },
-            {
-                "role": "system",
-                "content": "Here is an explanation of the damage trait: This trait refers to how much damage the character can give out with each hit."
-            },
-            {
-                "role": "system",
-                "content": "Here is an explanation of the control trait: This trait refers to how simple each character's combinations and specialty hits are to execute."
-            },
-            {
-                "role": "system",
-                "content": "An example of a trait combination that would be good for a beginner player would be, high agility, medium damage, with little emphasis on control."
-            },
-            {
-                "role": "system",
-                "content": "An example of a trait combination that would be good for an advanced player would be, high control, with there being a trade off between damage and agility."
-            },
-            {
-                "role": "system",
-                "content": f"{characters}"
-            },
-            {
-                "role": "user",
-                "content": story
-            }
-        ]
+    messages = [
+        {
+            "role": "system",
+            "content": "You will be given a  users story who is trying to figure out what character they should play from Mortal Kombat 11. Assume this user is unfamiliar with the game and the different characters. You will be given a list of all of the characters along with 3 traits and rankings for each of the traits. You must recommend 3 characters that the player should try."
+        },
+        {
+            "role": "system",
+            "content": "Here is an explanation of the agility trait: This trait refers to how easy it is to move around the stage during a fight."
+        },
+        {
+            "role": "system",
+            "content": "Here is an explanation of the damage trait: This trait refers to how much damage the character can give out with each hit."
+        },
+        {
+            "role": "system",
+            "content": "Here is an explanation of the control trait: This trait refers to how simple each character's combinations and specialty hits are to execute."
+        },
+        {
+            "role": "system",
+            "content": "An example of a trait combination that would be good for a beginner player would be, high agility, medium damage, with little emphasis on control."
+        },
+        {
+            "role": "system",
+            "content": "An example of a trait combination that would be good for an advanced player would be, high control, with there being a trade off between damage and agility."
+        },
+        {
+            "role": "system",
+            "content": f"{characters}"
+        },
+        {
+            "role": "user",
+            "content": story
+        }
+    ]
 
-    tools=[
-            {
-                "type": "function",
-                "function": {
+    tools = [
+        {
+            "type": "function",
+            "function": {
                     "name": "create_rank",
                     "description": "This function takes a rank, name, and reason and formats it into a dictionary",
                     "parameters": {
@@ -89,9 +91,9 @@ def getRec(story: str = ""):
                         },
                         "required": ["rank", "name", "reason"],
                     },
-                }
             }
-        ]
+        }
+    ]
 
     if story != "":
         response = chat_completion_request(messages, tools, model)
@@ -101,54 +103,61 @@ def getRec(story: str = ""):
 
         ranking = []
         for i, tool_call in enumerate(tool_calls):
-            rank = eval(tool_call.function.arguments)['rank']
-            name = eval(tool_call.function.arguments)['name']
-            reason = eval(tool_call.function.arguments)['reason']
+            rank = tool_call.function.arguments#['rank']
+            # name = tool_call.function.arguments['name']
+            # reason = tool_call.function.arguments['reason']
+            name = "Hello"
+            reason = "World"
             ranking.append({"rank": rank, "name": name, "reason": reason})
-
-
 
         print(f"This is the ranking: {ranking}")
         return ranking
     else:
         return "OK"
 
+
 @router.get("/insult/", tags=["insult"])
 def getInsult(player: str = "", game_end_state: str = "", opponent: str = ""):
     messages = [
         {
             "role": "system",
-            "content": "You are a helpful ai that will assist a user who is playing Mortal Kombat 11 in insulting their opponent in a tongue-in-cheek way. You will be given the oponents name and weather or not the user won as well as the player that the user was using. You must create an insult that is witty and funny that can be put though a text to speech program and be said out loud. The response should only contain the insult."
+            "content": "You are a helpful ai that will assist a user who is playing Mortal Kombat 11 in insulting their opponent in a tongue-in-cheek way. You will be given the oponents character, opponents name and weather or not the user won against the opponent. You must create an insult that is witty and funny that can be put though a text to speech program and be said out loud. The response should only contain the insult. Ideally, the insult should contain a refference to the character that the opponent was using"
         },
         {
             "role": "user",
-            "content": f"My player was {player} and I {game_end_state} the match, my opponent was {opponent}. Can you help me come up with a funny insult that I could tell the person who I played with?"
+            "content": f"My opponent was {player} and I {game_end_state} the match, my opponent was names {opponent}. Can you help me come up with a funny insult that I could tell the person who I played with?"
         }
 
     ]
 
     insult = chat_completion_request(messages)
-    print(f"Generated Instul: {insult}")
+    parsed_insult = insult.choices[0].message.content
+    print(f"Generated Instult: {parsed_insult}")
 
     speech_file_path = Path(__file__).parent / "speech.mp3"
     response = client.audio.speech.create(
-            model="tts-1",
-            voice="alloy",
-            input=insult
-            )
+        model="tts-1",
+        voice="onyx",
+        input=parsed_insult
+    )
 
     response.stream_to_file(speech_file_path)
+    print(f"Path to speech.mp3: {speech_file_path}")
 
-    return insult
+    pygame.mixer.init()
+    pygame.mixer.music.load(speech_file_path)
+    pygame.mixer.music.play()
+
+    return parsed_insult
 
 
 def chat_completion_request(messages, tools=None, model=GPT_MODEL):
     try:
         response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                tools=tools,
-                )
+            model=model,
+            messages=messages,
+            tools=tools,
+        )
         return response
     except Exception as e:
         print("Unable to generate ChatCompletion response")
