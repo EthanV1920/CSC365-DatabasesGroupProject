@@ -11,7 +11,9 @@ import json
 from src import database as db
 
 client = OpenAI()
-router = APIRouter()
+router = APIRouter(
+        dependencies=[Depends(auth.get_api_key)],
+        )
 
 GPT_MODEL = "gpt-3.5-turbo"
 
@@ -35,7 +37,7 @@ def getRec(story: str = ""):
     messages = [
         {
             "role": "system",
-            "content": "You will be given a  users story who is trying to figure out what character they should play from Mortal Kombat 11. Assume this user is unfamiliar with the game and the different characters. You will be given a list of all of the characters along with 3 traits and rankings for each of the traits. You must recommend 3 characters that the player should try."
+            "content": "You will be given a  users story who is trying to figure out what character they should play from Mortal Kombat 11. Assume this user is unfamiliar with the game and the different characters. You will be given a list of all of the characters along with 3 traits and rankings for each of the traits. You must always recommend 3 characters that the player should try."
         },
         {
             "role": "system",
@@ -63,7 +65,7 @@ def getRec(story: str = ""):
         },
         {
             "role": "user",
-            "content": story
+            "content": f"Can you recommend 3 characters based off of my story here: {story}"
         }
     ]
 
@@ -78,7 +80,7 @@ def getRec(story: str = ""):
                         "properties": {
                             "rank": {
                                 "type": "integer",
-                                "description": "This is how the order of the ranking of the three characters presented",
+                                "description": "This is a number that represents how strong the recommendation is with 1 being the strongest and 3 being less strong",
                             },
                             "name": {
                                 "type": "string",
@@ -86,7 +88,7 @@ def getRec(story: str = ""):
                             },
                             "reason": {
                                 "type": "string",
-                                "description": "The stated reason for why this character fulfills the users request",
+                                "description": "The stated reason for why this character fulfills the users request, this should be unique for each character",
                             },
                         },
                         "required": ["rank", "name", "reason"],
@@ -103,11 +105,11 @@ def getRec(story: str = ""):
 
         ranking = []
         for i, tool_call in enumerate(tool_calls):
-            rank = tool_call.function.arguments#['rank']
-            # name = tool_call.function.arguments['name']
-            # reason = tool_call.function.arguments['reason']
-            name = "Hello"
-            reason = "World"
+            message_json = json.loads(tool_call.function.arguments)
+            print(f"Character {i}: {json.dumps(message_json, indent=2)}")
+            rank = message_json['rank']
+            name = message_json['name']
+            reason = message_json['reason']
             ranking.append({"rank": rank, "name": name, "reason": reason})
 
         print(f"This is the ranking: {ranking}")
