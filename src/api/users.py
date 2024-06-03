@@ -13,17 +13,16 @@ router = APIRouter()
 @router.get("/userNew/", tags=["userNew"])
 def dbstats(username: str = ""):
 
-    with db.engine.begin() as connection:
-        name = connection.execute("SELECT name FROM users WHERE username = :username", {
-                                  "username": username}).fetchone()
-        if name is None:
-            return {"error": "User not found"}
-        else:
-            id = connection.execute("""
+    user_sql = sqlalchemy.text("""
                                INSERT INTO users (username, level)
                                VALUES (:username, 1)
                                RETURNING user_id
-                               """, {"username": username}).fetchone()
+                               """)
+    with db.engine.begin() as connection:
+        id = connection.execute(
+            user_sql, {"username": username}).scalar()
+
+    print(f"Added User:{username} with user_id: {id}")
 
     return [
         {
@@ -34,60 +33,94 @@ def dbstats(username: str = ""):
 
 
 @router.delete("/userDelete/", tags=["userDelete"])
-def delete_user(username: str = ""):
+def delete_user(user_id: str = ""):
+
+    delete_sql = sqlalchemy.text("DELETE FROM users WHERE user_id = :user_id ")
+
     with db.engine.begin() as connection:
-        user = connection.execute("SELECT name FROM users WHERE username = :username", {
-                                  "username": username}).fetchone()
-        if user is None:
-            return {"error": "User not found"}
-        else:
-            connection.execute("""
-                               DELETE FROM users WHERE username = :username
-                               """, {"username": username})
+        connection.execute(delete_sql, {"user_id": user_id})
+
+    print(f"Successfully deleted user: {user_id}")
 
     return {"success": "Successfully deleted user from database"}
 
 
 @router.put("/userUpdate/", tags=["userUpdate"])
-def update_user_level(username: str = "", level: int = 1):
-    with db.engine.begin() as connection:
-        user = connection.execute("SELECT name FROM users WHERE username = :username", {
-                                  "username": username}).fetchone()
-        if user is None:
-            return {"error": "User not found"}
-        else:
-            connection.execute("""
-                               UPDATE users SET level = :level WHERE username = :username
-                               """, {"username": username, "level": level})
+def update_user_level(user_id: int, username: str = None, level: int = None):
 
-    return {"success": "Successfully updated user's level"}
+    update_sql = sqlalchemy.text("""
+                                 update
+                                     users
+                                 set
+                                     username = coalesce(:username, username),
+                                     level = coalesce(:level, level)
+                                 where
+                                 user_id = :user_id
+                                 returning
+                                     username,
+                                     level
+                                 """)
+    with db.engine.begin() as connection:
+        result = connection.execute(update_sql, {
+                                  "user_id": user_id,
+                                  "username": username,
+                                  "level": level}).fetchone()
+        if result is None:
+            return {"error": "User not found"}
+
+    result_string = f"Successfully updated user: {result.username} to level: {result.level}"
+    print(result_string)
+
+    return {"success": result_string}
 
 
 @router.put("/userLogin/", tags=["userLogin"])
-def login_user(username: str = ""):
-    with db.engine.begin() as connection:
-        user_id = connection.execute("SELECT user_id FROM users WHERE name = :name", {
-                                     "name": username}).fetchone()
-        if user_id is None:
-            return {"error": "Character not found"}
-        else:
-            connection.execute("""
-                               UPDATE characters SET online = TRUE WHERE user_id = :user_id
-                               """, {"user_id": user_id})
+def login_user(user_id: int):
 
-    return {"success": "Successfully logged in user"}
+    login_sql = sqlalchemy.text("""
+                                update users
+                                set
+                                    online = true
+                                where
+                                    user_id = :user_id
+                                returning
+                                    username,
+                                    online
+                                """)
+
+    with db.engine.begin() as connection:
+        result = connection.execute(login_sql, {"user_id": user_id}).fetchone()
+        print(result)
+
+        if result is None:
+            return {"error": "Character not found"}
+
+    result_string = f"Successfully changed online status of {result.username} to {result.online}"
+    print(result_string)
+
+    return {"success": result_string}
 
 
 @router.put("/userLogout/", tags=["userLogout"])
-def logout_user(username: str = ""):
-    with db.engine.begin() as connection:
-        user_id = connection.execute("SELECT user_id FROM users WHERE name = :name", {
-                                     "name": username}).fetchone()
-        if user_id is None:
-            return {"error": "User not found"}
-        else:
-            connection.execute("""
-                               UPDATE characters SET online = FALSE WHERE user_id = :user_id
-                               """, {"user_id": user_id})
+def logout_user(user_id: int):
+    login_sql = sqlalchemy.text("""
+                            update users
+                            set
+                                online = false
+                            where
+                                user_id = :user_id
+                            returning
+                                username,
+                                online
+                            """)
 
-    return {"success": "Successfully logged out user"}
+    with db.engine.begin() as connection:
+        result = connection.execute(login_sql, {"user_id": user_id}).fetchone()
+
+        if result is None:
+            return {"error": "Character not found"}
+
+    result_string = f"Successfully changed online status of {result.username} to {result.online}"
+    print(result_string)
+
+    return {"success": result_string}

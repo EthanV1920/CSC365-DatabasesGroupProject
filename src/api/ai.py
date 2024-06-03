@@ -123,7 +123,7 @@ def getInsult(player: str = "", game_end_state: str = "", opponent: str = ""):
     messages = [
         {
             "role": "system",
-            "content": "You are a helpful ai that will assist a user who is playing Mortal Kombat 11 in insulting their opponent in a tongue-in-cheek way. You will be given the oponents character, opponents name and weather or not the user won against the opponent. You must create an insult that is witty and funny that can be put though a text to speech program and be said out loud. The response should only contain the insult. Ideally, the insult should contain a refference to the character that the opponent was using"
+            "content": "You are a helpful ai that will assist a user who is playing Mortal Kombat 11 in insulting their opponent in a tongue-in-cheek way. You will be given the oponents character, opponents name and weather or not the user won against the opponent. You must create an insult that is witty and funny that can be put though a text to speech program and be said out loud. The response should only contain the insult. Ideally, the insult should contain a reference to the character that the opponent was using"
         },
         {
             "role": "user",
