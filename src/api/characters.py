@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Request
 import sqlalchemy
 
 from src import database as db
+from sqlalchemy import literal_column
 # from typing import Dict
 
 router = APIRouter()
@@ -12,56 +13,34 @@ router = APIRouter()
 
 @router.get("/search/", tags=["search"])
 def search_characters(character_name: str = "",
-                      sort_col: str = "0",
+                      sort_col: str = "char.name",
                       sort_order: str = "desc"):
     result = []
+    if sort_col == "0":
+        sort_col = "char.name"
 
-    previous = ""
     char_sql = sqlalchemy.text("""
-                              SELECT
-                                  char.name,
-                                  char.traits_id,
-                                  char.character_id,
-                                  tra.trait_id,
-                                  tra.agility,
-                                  tra.damage,
-                                  tra.control
-                              FROM
-                                  characters char
-                              JOIN 
-                                  traits tra ON char.traits_id = tra.trait_id
-                              WHERE
-                                  char.name = :name
-                              ORDER BY
-                                  :sort_col
-                                  :sort_order
-                              """)
+                    SELECT
+                        char.name,
+                        char.traits_id,
+                        char.character_id,
+                        tra.trait_id,
+                        tra.agility,
+                        tra.damage,
+                        tra.control
+                    FROM
+                        characters AS char
+                    JOIN 
+                        traits AS tra ON char.traits_id = tra.trait_id
+                    WHERE
+                        char.name LIKE :name
+                    ORDER BY
+                        {sort_col} {sort_order}
+                    """.format(sort_col=literal_column(sort_col), sort_order=sort_order))
 
-    # if character_name != "":
-        # query += " WHERE char.name = :name"
-        # params["name"] = character_name
-
-    # if not search_page:
-    #     search_page = "1"
-
-    # params["page"] = search_page
-
-
-    # if sort_col == "":
-    #     sort_col = "char.character_id"
-
-    # if sort_order == "":
-    #     sort_order = "desc"
-
-    # query += f" ORDER BY {sort_col} {sort_order}"
-
-    # if character_name != "":
-    #     count_query += " WHERE cust.name = :name"
     params = {
-            'name': character_name,
-            'sort_col': sort_col,
-            'sort_order': sort_order}
-
+            'name': '%' + character_name + '%',
+            }
 
     with db.engine.begin() as connection:
         results = connection.execute(char_sql, params).fetchall()
