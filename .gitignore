@@ -6,3 +6,5 @@ venv/
 src/api/__pycache__/
 
 local_testing/
+
+.vscode/
