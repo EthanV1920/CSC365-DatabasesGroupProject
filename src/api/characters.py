@@ -15,7 +15,7 @@ def search_characters(character_name: str = "",
                       sort_col: str = "char.name",
                       sort_order: str = "desc"):
     result = []
-    allowed_columns = ["char.name", "tra.agility", "tra.damage", "tra.control", "damage", "control", "agility"]
+    allowed_columns = ["char.name", "traits.agility", "traits.damage", "traits.control", "damage", "control", "agility"]
     allowed_orders = ["asc", "desc"]
     banned_characters = [";", "DROP", "TABLE", "DELETE", "UPDATE", "INSERT", "SELECT", "FROM", "WHERE", "AND", "OR", "'", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
 
@@ -35,14 +35,14 @@ def search_characters(character_name: str = "",
                         char.name,
                         char.traits_id,
                         char.character_id,
-                        tra.trait_id,
-                        tra.agility,
-                        tra.damage,
-                        tra.control
+                        traits.trait_id,
+                        traits.agility,
+                        traits.damage,
+                        traits.control
                     FROM
                         characters AS char
                     JOIN 
-                        traits AS tra ON char.traits_id = tra.trait_id
+                        traits ON char.traits_id = tra.trait_id
                     WHERE
                         char.name LIKE :name
                     ORDER BY

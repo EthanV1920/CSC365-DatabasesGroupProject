@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.get("/userNew/", tags=["userNew"])
-def dbstats(username: str = ""):
+def new_account(username: str = ""):
 
     user_sql = sqlalchemy.text("""
                                INSERT INTO users (username, level)
@@ -16,6 +16,10 @@ def dbstats(username: str = ""):
                                RETURNING user_id
                                """)
     with db.engine.begin() as connection:
+        exists = connection.execute(sqlalchemy.text("select coalesce(user_id, 0) from users where username = :username"), {"username": username}).scalar_one()
+        if (not exists):
+            print("Username already in use")
+            return {"Username already in use"}
         id = connection.execute(
             user_sql, {"username": username}).scalar()
 
@@ -30,7 +34,7 @@ def dbstats(username: str = ""):
 
 
 @router.delete("/userDelete/", tags=["userDelete"])
-def delete_user(user_id: str = ""):
+def delete_account(user_id: str = ""):
 
 
     try:
@@ -41,6 +45,11 @@ def delete_user(user_id: str = ""):
     delete_sql = sqlalchemy.text("DELETE FROM users WHERE user_id = :user_id ")
 
     with db.engine.begin() as connection:
+        exists = connection.execute(sqlalchemy.text("select coalesce(username, NULL) from users where user_id = :user_id"), {"user_id": user_id}).fetchone()
+        if (not exists):
+            print("User Not Found")
+            return {"User Not Found"}
+
         connection.execute(delete_sql, {"user_id": user_id})
 
     print(f"Successfully deleted user: {user_id}")
@@ -92,6 +101,10 @@ def login_user(user_id: int):
                                 """)
 
     with db.engine.begin() as connection:
+        online = connection.execute(sqlalchemy.text("select online from users where user_id = :user_id"), {"user_id": user_id}).fetchone()
+        if (online):
+            return {"Already Online"}
+
         result = connection.execute(login_sql, {"user_id": user_id}).fetchone()
         print(result)
 
@@ -118,6 +131,10 @@ def logout_user(user_id: int):
                             """)
 
     with db.engine.begin() as connection:
+        online = connection.execute(sqlalchemy.text("select online from users where user_id = :user_id"), {"user_id": user_id}).fetchone()
+        if (not online):
+            return {"Already Offline"}
+
         result = connection.execute(login_sql, {"user_id": user_id}).fetchone()
 
         if result is None:

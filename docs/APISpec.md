@@ -4,40 +4,41 @@
 
 The API calls are made in this sequence when making a purchase:
 
-1. `Get Inventory`
+1. `Search Characters`
 2. `New Cart`
 3. `Add Item to Cart` (Can be called multiple times)
 4. `Make Purchase`
 
-### 1.1. Get Inventory - `/inventory/` (GET)
+### 1.1.Search Characters- `/characters/search_characters/` (GET)
 
 Get the catalog of available items that the player can buy with all the attributes
 
+**Query Parameters**:
+
+- `character_name` (optional): The name of the character.
+- `sort_col` (optional): The column to sort the results by. Possible values: `char.name` (character name), `traits.agility`, `traits.damage`, `traits.control`, `damage`, `control`, `agility`. Default: `char.name`.
+- `sort_order` (optional): The sort order of the results. Possible values: `asc` (ascending), `desc` (descending). Default: `desc`.
+
 **Response**:
 
-```json
-[
-  {
-    "item_name": "string",
-    "item_sku": "string",
-    "price": "integer"
-  },
-  {
-    ...
-  }
-]
-```
+The API returns a JSON object with the following structure:
 
-### 1.2. New Cart - `/carts/` (POST)
+- `results`: An array of objects, each representing a line item. Each line item object has the following properties:
+    - `Character Name`: Astring that represents the characters name.
+    - `Character Id`: An integer that represents characters identifier.
+    - `Agility`: An integer that represents characters agility level.
+    - `Damage`: An integer that represents characters damage level.
+    - `Control`: An integer that represents characters control level.
 
-Creates a new cart for a specific customer.
+### 1.2. New Cart - `/purchase/` (POST)
+
+Creates a new cart for a specific user.
 
 **Request**:
 
 ```json
 {
-  "player_id": "integer",
-  "inventory_id": "integer",
+  "username": "string"
 }
 ```
 
@@ -45,11 +46,11 @@ Creates a new cart for a specific customer.
 
 ```json
 {
-    "cart_id": "string" /* This id will be used for future calls to add items and checkout */
+    "cart_id": "integer" /* This id will be used for future calls to add items and checkout */
 }
 ```
 
-### 1.2. Add Item to Cart - `/carts/{cart_id}/items/{item_sku}` (PUT)
+### 1.2. Add Item to Cart - `/purchase/{cart_id}/items/{item_sku}` (POST)
 
 Updates the quantity of a specific item in a cart.
 
@@ -57,7 +58,8 @@ Updates the quantity of a specific item in a cart.
 
 ```json
 {
-  "item_id": "integer"
+  "cart_id": "integer",
+  "character_name": "string"
 }
 ```
 
@@ -65,11 +67,11 @@ Updates the quantity of a specific item in a cart.
 
 ```json
 {
-    "success": "boolean"
+    "Added to cart": "boolean"
 }
 ```
 
-### 1.4. Make Purchase - `/carts/completePurchase/{cart_id}` (POST)
+### 1.4. Checkout - `/carts/completePurchase/{cart_id}` (POST)
 
 Uses the inventory to determine if a purchase is viable and if so updates the inventory to reflect the purchase
 
@@ -77,13 +79,7 @@ Uses the inventory to determine if a purchase is viable and if so updates the in
 
 ```json
 [
-  {
-    "item_sku": "sting",
-    "price": "integer"
-  },
-  {
-    ...
-  }
+  "cart_id": "int",
 ]
 ```
 
@@ -99,19 +95,17 @@ Uses the inventory to determine if a purchase is viable and if so updates the in
 
 The API calls are made in this sequence when the matches happen:
 
-1. `Start Match`
+1. `Create Match`
 2. `End Match`
 
-### 2.1. Start Match - `/match/start/` (POST)
+### 2.1. Match Create - `/match/create/` (POST)
 
-Runs an algorithm to match you up with a properly skilled opponent
-
+Runs an algorithm to match you up with an opponent
 
 **Request**
 ```json
 {
-    "Winner": "int",
-    "match_id": "int"
+    "user_id": "int"
 }
 ```
 
@@ -126,7 +120,7 @@ Runs an algorithm to match you up with a properly skilled opponent
 ]
 ```
 
-### 2.2. End Match - `/match/end/{match_id}` (POST)
+### 2.2. End Match - `/match/updateWinner/` (POST)
 
 Ends the match updating match table with who won and who lost
 
@@ -136,7 +130,7 @@ Ends the match updating match table with who won and who lost
 [
     {
         "winner": "player_id",
-        "loser": "player_id"
+        "match_id": "integer"
     }
 ]
 ```
@@ -151,10 +145,9 @@ The API calls are made that manage account activities:
 4. `Log on`
 5. `Log off`
 
-### 3.1. New Account - `/account/new` (POST)
+### 3.1. New Account - `/userNew/` (POST)
 
-Gets the plan for purchasing wholesale barrels. The call passes in a catalog of available barrels
-and the shop returns back which barrels they'd like to purchase and how many.
+Cretes a new ccount for user, given username. Only makes account for unique usernames
 
 **Request**:
 
@@ -172,12 +165,12 @@ and the shop returns back which barrels they'd like to purchase and how many.
 [
     {
         "user_id": "integer",
-        "success": "str"
+        "success: Successfully added user to database"
     }
 ]
 ```
 
-### 3.2. Delete account - `/account/delete/{user_id}` (POST)
+### 3.2. Delete account - `/userDelete/` (POST)
 
 Deletes the entire account from the database
 
@@ -186,13 +179,13 @@ Deletes the entire account from the database
 ```json
 [
   {
-    "Success": "str"
+    "user_id_": "string"
   }
 ]
 ```
 
 
-### 3.3 Game Update Level - `/account/game_update/{username}` (POST)
+### 3.3 Game Update Level - `/userUpdate/` (POST)
 
 Allow the game to update player attributes as they win and lose games will take in the gains and losses and then reflect those changes in the database.
 
@@ -201,6 +194,7 @@ Allow the game to update player attributes as they win and lose games will take 
 ```json
 [
   {
+    "user_id": "integer",
     "username": "string",
     "level": "integer"
   }
@@ -212,12 +206,12 @@ Allow the game to update player attributes as they win and lose games will take 
 ```json
 [
   {
-    "success": "boolean"
+    "success": "string"
   }
 ]
 ```
 
-### 3.4 Log on - `/account/Logon/{username}` (POST)
+### 3.4 Log on - `/userLogin/` (POST)
 
 Turns on a online boolean that is used for matchmaking
 
@@ -226,7 +220,7 @@ Turns on a online boolean that is used for matchmaking
 ```json
 [
   {
-    "username": "string"
+    "user_id_": "integer"
   }
 ]
 ```
@@ -236,12 +230,12 @@ Turns on a online boolean that is used for matchmaking
 ```json
 [
   {
-    "success": "boolean"
+    "success": "string"
   }
 ]
 ```
 
-### 3.5 Log off - `/account/Logoff/{username}` (POST)
+### 3.5 Log off - `/userLogout/` (POST)
 
 Turns off a online boolean that is used for matchmaking
 
@@ -250,7 +244,7 @@ Turns off a online boolean that is used for matchmaking
 ```json
 [
   {
-    "username": "string"
+    "user_id_": "integer"
   }
 ]
 ```
@@ -260,7 +254,64 @@ Turns off a online boolean that is used for matchmaking
 ```json
 [
   {
-    "success": "boolean"
+    "success": "string"
   }
+]
+```
+
+## 4. AI Help
+
+The API calls are made that use AI to assist users:
+
+1. `Get Recommendation`
+2. `Get Insult`
+
+### 4.1. Get Recommendation- `/recommendations/` (POST)
+
+Generates an opponent recommendation based off information provided.
+
+**Request**:
+
+```json
+[
+  {
+    "story": "string",
+  }
+]
+```
+
+**Response**:
+
+```json
+[
+    {
+        "Recommendation Response": "string"
+    }
+]
+```
+
+### 3.2. Get Insult - `/insult/` (POST)
+
+Generates an insult based match results and players.
+
+**Request**:
+
+```json
+[
+  {
+    "player": "string",
+    "game_end_state": "string",
+    "opponent": "string"
+  }
+]
+```
+
+**Response**:
+
+```json
+[
+    {
+        "Recommendation Response": "string"
+    }
 ]
 ```

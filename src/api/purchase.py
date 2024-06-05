@@ -23,7 +23,7 @@ def create_cart(new_cart: Customer):
     """ """
     with db.engine.begin() as conn:
         id = conn.execute(sqlalchemy.text("SELECT user_id from users where username = :Username"),
-                          {"Username": new_cart.username}).scalar()
+                          {"Username": new_cart.username}).scalar_one()
         cartID = conn.execute(sqlalchemy.text(
             "INSERT INTO carts (user_id) VALUES (:id) RETURNING cart_id"), {"id": id}).scalar()
     return {"cart_id": cartID}
@@ -32,22 +32,22 @@ def create_cart(new_cart: Customer):
 @router.post("/{cart_id}/items/{character_sku}")
 def add_to_cart(cart_id: int, character_name: str):
     """ """
+    success = True
     with db.engine.begin() as conn:
-        userID = conn.execute(sqlalchemy.text(
-            "SELECT user_id FROM carts WHERE cart_id = :cartID"), [{"cartID": cart_id}]).scalar()
-        characterID = conn.execute(sqlalchemy.text(
-            "SELECT character_id FROM characters WHERE name = :Name"), {"Name": character_name})
-        conn.execute(sqlalchemy.text("INSERT INTO cart_items (cart_id, user_id, character_id) VALUES (:cartID, :userID, :characterID)"),
-                     [{"cartID": cart_id, "customerID": userID, "sku": characterID}])
-    return "Added to Cart"
-
-
-class CartCheckout(BaseModel):
-    payment: str
+        try:
+            characterID = conn.execute(sqlalchemy.text(
+                "SELECT character_id FROM characters WHERE name = :Name"), {"Name": character_name})
+        
+            conn.execute(sqlalchemy.text("INSERT INTO cart_items (cart_id, character_id) VALUES (:cartID, :characterID)"),
+                        [{"cartID": cart_id, "sku": characterID}])
+        except Exception as e:
+            success = False
+    return {"Added to Cart: {success}"}
 
 
 @router.post("/{cart_id}/checkout")
-def checkout(cart_id: int, cart_checkout: CartCheckout):
+def checkout(cart_id: int):
+    success = False
     with db.engine.begin() as conn:
         total_paid = 0
         total_bought = 0
@@ -69,4 +69,5 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                              [{"userID": user, "characterID": character}])
             conn.execute(sqlalchemy.text("INSERT INTO gold_ledger (gold) VALUES (:total_paid)"),
                          {"total_paid": total_paid})
-    return {"total_potions_bought": total_bought, "total_gold_paid": total_paid}
+            success = True
+    return {"success {success}"}
