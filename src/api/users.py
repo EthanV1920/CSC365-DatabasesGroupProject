@@ -16,8 +16,8 @@ def new_account(username: str = ""):
                                RETURNING user_id
                                """)
     with db.engine.begin() as connection:
-        exists = connection.execute(sqlalchemy.text("select coalesce(user_id, 0) from users where username = :username"), {"username": username}).scalar_one()
-        if (not exists):
+        exists = connection.execute(sqlalchemy.text("select coalesce(user_id, 0) from users where username = :username"), {"username": username}).scalar_one_or_none()
+        if (exists):
             print("Username already in use")
             return {"Username already in use"}
         id = connection.execute(

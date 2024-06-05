@@ -23,6 +23,8 @@ def search_characters(character_name: str = "",
         if char in character_name:
             character_name = ""
             break
+
+    character_name = character_name.capitalize()
         
     if sort_col not in allowed_columns:
         sort_col = "char.name"
@@ -42,7 +44,7 @@ def search_characters(character_name: str = "",
                     FROM
                         characters AS char
                     JOIN 
-                        traits ON char.traits_id = tra.trait_id
+                        traits ON char.traits_id = traits.trait_id
                     WHERE
                         char.name LIKE :name
                     ORDER BY
@@ -71,7 +73,7 @@ def search_characters(character_name: str = "",
         "results": result
     }
 
-@router.get("/dbstats/", tags=["dbstats"])
+@router.get("/characterCount/", tags=["characterCount"])
 def dbstats():
     stats_sql = sqlalchemy.text("""
                                 SELECT

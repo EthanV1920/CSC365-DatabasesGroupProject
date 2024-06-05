@@ -3,6 +3,7 @@ import sqlalchemy
 import database as db
 import random
 from sqlalchemy import text
+import csv
 
 
 fake = Faker()
@@ -21,7 +22,46 @@ fake = Faker()
 #         connection.execute(sqltxt)
 #     print(result)
 
-#Char inventory generation 1001131
+# #Char inventory generation 1001131
+# fake = Faker(['en_US'])
+# params = []
+
+# # Fetch valid user IDs from the database
+# with db.engine.begin() as connection:
+#     result = connection.execute(text("""
+#         SELECT user_id FROM users
+#     """))
+#     valid_user_ids = [row[0] for row in result]
+
+# # Open a CSV file for writing
+# with open('characters_ledger.csv', 'w', newline='') as csvfile:
+#     fieldnames = ['user_id', 'character_id']
+#     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+#     # Write the header
+#     writer.writeheader()
+
+#     # Loop over valid user IDs
+#     for user_id in valid_user_ids:
+#         chars = []
+#         for _ in range(10):
+#             char_id = fake.random_int(min=38, max=74)
+#             if char_id not in chars:
+#                 chars.append(char_id)
+#                 params.append({"user_id": user_id, "character_id": char_id})
+
+#         # Write the rows to the CSV file in batches of 10000
+#         if len(params) >= 10000:
+#             writer.writerows(params)
+#             print("wrote 10000")
+#             params = []
+
+#     # Write any remaining rows to the CSV file
+#     if params:
+#         writer.writerows(params)
+
+
+# Gold ledger generation
 fake = Faker(['en_US'])
 params = []
 
@@ -32,33 +72,28 @@ with db.engine.begin() as connection:
     """))
     valid_user_ids = [row[0] for row in result]
 
-# Loop over valid user IDs
-for user_id in valid_user_ids:
-    chars = []
-    for _ in range(10):
-        char_id = fake.random_int(min=38, max=74)
-        if char_id not in chars:
-            chars.append(char_id)
-            params.append({"user_id": user_id, "char_id": char_id})
+# Open a CSV file for writing
+with open('gold_ledger.csv', 'w', newline='') as csvfile:
+    fieldnames = ['user_id', 'gold']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-    # Execute the SQL statements in batches of 10000
-    if len(params) >= 10000:
-        with db.engine.begin() as connection:
-            connection.execute(text("""
-                INSERT INTO characters_ledger (user_id, character_id) 
-                VALUES (:user_id, :char_id)
-            """), params)
-        print("sent 10000")
-        params = []
+    # Write the header
+    writer.writeheader()
 
-# Execute any remaining SQL statements
-if params:
-    with db.engine.begin() as connection:
-        connection.execute(text("""
-            INSERT INTO characters_ledger (user_id, character_id) 
-            VALUES (:user_id, :char_id)
-        """), params)
+    # Loop over valid user IDs
+    for user_id in valid_user_ids:
+        gold = int((random.random() ** 2) * (125000 - 50) + 50)
+        params.append({"user_id": user_id, "gold": gold})
 
+        # Write the rows to the CSV file in batches of 10000
+        if len(params) >= 10000:
+            writer.writerows(params)
+            print("wrote 10000")
+            params = []
+
+    # Write any remaining rows to the CSV file
+    if params:
+        writer.writerows(params)
 
 
 #match generation
