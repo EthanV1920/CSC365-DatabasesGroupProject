@@ -1,7 +1,4 @@
 from fastapi import APIRouter, Depends, Request
-# from pydantic import BaseModel
-# from src.api import auth
-# from enum import Enum
 import sqlalchemy
 
 from src import database as db
@@ -35,6 +32,12 @@ def dbstats(username: str = ""):
 @router.delete("/userDelete/", tags=["userDelete"])
 def delete_user(user_id: str = ""):
 
+
+    try:
+        int(user_id)
+    except ValueError:
+        return {"error": "Invalid user_id"}
+            
     delete_sql = sqlalchemy.text("DELETE FROM users WHERE user_id = :user_id ")
 
     with db.engine.begin() as connection:

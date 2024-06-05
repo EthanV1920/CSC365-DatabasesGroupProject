@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, Request
-# from pydantic import BaseModel
-# from src.api import auth
-# from enum import Enum
 import sqlalchemy
+from sqlalchemy import text, desc, asc, literal_column
+from sqlalchemy.sql import selectable
 
 from src import database as db
 from sqlalchemy import literal_column
@@ -16,8 +15,20 @@ def search_characters(character_name: str = "",
                       sort_col: str = "char.name",
                       sort_order: str = "desc"):
     result = []
-    if sort_col == "0":
+    allowed_columns = ["char.name", "tra.agility", "tra.damage", "tra.control", "damage", "control", "agility"]
+    allowed_orders = ["asc", "desc"]
+    banned_characters = [";", "DROP", "TABLE", "DELETE", "UPDATE", "INSERT", "SELECT", "FROM", "WHERE", "AND", "OR", "'", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+
+    for char in banned_characters:
+        if char in character_name:
+            character_name = ""
+            break
+        
+    if sort_col not in allowed_columns:
         sort_col = "char.name"
+    if sort_order not in allowed_orders:
+        sort_order = "desc"
+
 
     char_sql = sqlalchemy.text("""
                     SELECT
@@ -37,6 +48,8 @@ def search_characters(character_name: str = "",
                     ORDER BY
                         {sort_col} {sort_order}
                     """.format(sort_col=literal_column(sort_col), sort_order=sort_order))
+
+
 
     params = {
             'name': '%' + character_name + '%',
