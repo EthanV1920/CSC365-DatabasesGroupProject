@@ -102,7 +102,7 @@ def login_user(user_id: int):
 
     with db.engine.begin() as connection:
         online = connection.execute(sqlalchemy.text("select online from users where user_id = :user_id"), {"user_id": user_id}).fetchone()
-        if (online):
+        if (online == (True,)):
             return {"Already Online"}
 
         result = connection.execute(login_sql, {"user_id": user_id}).fetchone()
@@ -132,8 +132,10 @@ def logout_user(user_id: int):
 
     with db.engine.begin() as connection:
         online = connection.execute(sqlalchemy.text("select online from users where user_id = :user_id"), {"user_id": user_id}).fetchone()
-        if (not online):
+
+        if (online == (False,)):
             return {"Already Offline"}
+        print(online)
 
         result = connection.execute(login_sql, {"user_id": user_id}).fetchone()
 
