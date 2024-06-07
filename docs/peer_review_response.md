@@ -1,6 +1,6 @@
-#Code Review Response:
+# Code Review Response:
 
-##Sofia Bryukhova
+## Sofia Bryukhova
 1. Fixed potential sql injection
 2. MATCH PROBLEM
 3. MATCH PROBLEM
@@ -15,7 +15,7 @@
 12. Agreed we are working on fixing our style
 13. Yeah we’ll start removing useless comments
 
-##Dre Suguitan
+## Dre Suguitan
 1. ‘sqlalchemy.text()’ added to connection.execute command in users.py
 ****2. usersNew errors out when username is not found in database, but that is what is supposed to happen when adding the username. Replace with IntegrityError (see schema comments about making username a unique attribute)
 3. ‘name’ changed to ‘username’ in users.py methods
@@ -29,7 +29,7 @@
 ****11. add_to_cart querying for userId may be redundant. See schema comments about removing user_id from cart_items.
 ****12. A view of sum(gold) could be made so that the aggregate function did not have to be ran every charPurchase API called.
 
-##Ethan Swenke
+## Ethan Swenke
 1. traits no longer aliased in search endpoint, for readability
 ****2. I'm not sure what the purpose of the dbstats endpoint is currently in characters. I would suggest some more logic to retrieve stats on wins, losses, traits, etc.
 3. In match, for the duplicate dbstats function the actual route and function name seems to be copy pasted from user/character function name changed from dbstats to new_user
@@ -45,9 +45,9 @@
 ****13. Why are we choosing how to update the user's level? I feel there should be some logic on the backend that decides when and how to update the user's level.
 
 
-#Schema/API Design Comments
+# Schema/API Design Comments
 
-##Sofia Bryukhova
+## Sofia Bryukhova
 1. True, fixed
 2. We have started adding indices
 3. Our integers are smaller numbers that will never need to be bigint
@@ -60,7 +60,7 @@
 10. Carts does that
 11. That is managed in the shop
 
-##Dre Suguitan
+## Dre Suguitan
 1. Python script for pre populating table added
 ****2. cart_items table doesn’t necessarily need line_item_id as cart_id and character_id can be a composite key
 3. User_id removed from cart items
@@ -74,7 +74,7 @@
 12. Should be fixed so all valid cart items can be checked out
 
 
-##Ethan Swenke
+## Ethan Swenke
 ****1. I would remove the 'winner' field from the request for start match... I'm not sure why that is needed in starting the match
 2. Yes, this was updated
 3. Doing this here as a response for user experience and ease of use
@@ -88,19 +88,19 @@
 11. Helpful for not checking out orders more than once
 12. Notes and user_id removed from cart_items table
 
-#Test Result
+# Test Result
 We had two major errors at the time of the code review, the biggest being that many of our endpoints contained bugs causing Internal Server Errors. Additionally, we slightly changed the scope and trajectory of our project, so the workflows are no longer relevant to how we are currently using our database. However, we’ve tested similar workflows, tailored to our new use cases and the endpoints appear to be working as intended without server errors.
 
-#Product Ideas
+# Product Ideas
 
-##Sofia Bryukhova
+## Sofia Bryukhova
 1. We are doing a complete revamp of our match system currently, it is one of our weakest points currently
 2. We actually now have an endpoint to recommend characters to users based on anything really
 
-##Dre Suguitan
+## Dre Suguitan
 1. Yes, this is something we plan to add if time allows, however for the time being we decided to focus or project and database around characters
 2. I love this idea, it would be great to add when we expand past a character focused database.
 
-##Ethan Swenke
+## Ethan Swenke
 1. Great idea, adding complexity to t=matches to reflect actual gameplay and events is one of the next goals for us.
 2. This is a good idea, and we were intending on adding this functionality but decided to center our project around characters, making the scope and plans more realistic and adding complexity where possible and time allows.
