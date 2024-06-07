@@ -34,8 +34,110 @@ The Recommendation and Insult endpoints take long because they're being powered 
 ## Performance Tuning
 
 1. Purchase Character: New Execution Time = 268 ms
-3. Create Match: New Execution Time = 296 ms
-4. Delete User: New Execution Time = 202 ms
+2. Create Match: New Execution Time = 296 ms
+<br />explain
+  with user_level as (select level
+                    from users
+                    where user_id = :user_id),
+     opponent
+         as (select nullif(user_id, (select player2 from matches where player2 = :user_id and player2_char is null)) as user_id
+             from users,
+                  user_level
+             where users.level between user_level.level - 5 and user_level.level + 5
+               and user_id != :user_id
+               and (select online
+                    from users
+                    where user_id = :user_id) = true
+               and online = true
+             order by random()
+             limit 1)
+insert into
+  matches (
+    player1,
+    player1_char,
+    player2,
+    player2_char,
+    status
+  )
+values
+  (
+    :user_id,
+    :user_char,
+    (
+      select
+        *
+      from
+        opponent
+    ),
+    null,
+    -1
+  )
+returning
+  id,
+  player2;
+
+| QUERY PLAN                                                                                                                   |
+| ---------------------------------------------------------------------------------------------------------------------------- |
+| Insert on matches  (cost=71139.32..71139.34 rows=1 width=48)                                                                 |
+|   CTE opponent                                                                                                               |
+|     ->  Limit  (cost=71139.30..71139.30 rows=1 width=12)                                                                     |
+|           InitPlan 1 (returns $0)                                                                                            |
+|             ->  Seq Scan on matches matches_1  (cost=0.00..49574.98 rows=1 width=8)                                          |
+|                   Filter: ((player2_char IS NULL) AND (player2 = 12345))                                                     |
+|           InitPlan 2 (returns $1)                                                                                            |
+|             ->  Index Scan using user_id_index on users  (cost=0.42..2.64 rows=1 width=1)                                    |
+|                   Index Cond: (user_id = 123456)                                                                             |
+|           ->  Sort  (cost=21561.68..21561.68 rows=1 width=12)                                                                |
+|                 Sort Key: (random())                                                                                         |
+|                 ->  Result  (cost=0.42..21561.67 rows=1 width=12)                                                            |
+|                       One-Time Filter: $1                                                                                    |
+|                       ->  Nested Loop  (cost=0.42..21561.66 rows=1 width=4)                                                  |
+|                             Join Filter: ((users_1.level >= (users_2.level - 5)) AND (users_1.level <= (users_2.level + 5))) |
+|                             ->  Seq Scan on users users_1  (cost=0.00..21559.00 rows=1 width=8)                              |
+|                                   Filter: (online AND (user_id <> 123456))                                                   |
+|                             ->  Index Scan using user_id_index on users users_2  (cost=0.42..2.64 rows=1 width=4)            |
+|                                   Index Cond: (user_id = 123456)                                                             |
+|   InitPlan 4 (returns $3)                                                                                                    |
+|     ->  CTE Scan on opponent  (cost=0.00..0.02 rows=1 width=4)                                                               |
+|   ->  Result  (cost=0.00..0.02 rows=1 width=48)                                                                              
+
+Based off the above query plan, we decided to index the player1 and player2 in matches as well as online in users
+
+create index player1_index ON matches (player1)
+create index player2_index ON matches (player2)
+create index online_index ON users (online)
+
+| QUERY PLAN                                                                                                                        |
+| --------------------------------------------------------------------------------------------------------------------------------- |
+| Insert on matches  (cost=12.89..12.91 rows=1 width=48) (actual time=2.205..2.208 rows=1 loops=1)                                  |
+|   CTE opponent                                                                                                                    |
+|     ->  Limit  (cost=12.86..12.87 rows=1 width=12) (actual time=0.060..0.061 rows=0 loops=1)                                      |
+|           InitPlan 1 (returns $0)                                                                                                 |
+|             ->  Index Scan using player2_index on matches matches_1  (cost=0.43..6.00 rows=1 width=8) (never executed)            |
+|                   Index Cond: (player2 = 12345)                                                                                   |
+|                   Filter: (player2_char IS NULL)                                                                                  |
+|           InitPlan 2 (returns $1)                                                                                                 |
+|             ->  Index Scan using users_pkey on users  (cost=0.42..2.64 rows=1 width=1) (actual time=0.036..0.037 rows=1 loops=1)  |
+|                   Index Cond: (user_id = 123456)                                                                                  |
+|           ->  Sort  (cost=4.22..4.23 rows=1 width=12) (actual time=0.059..0.059 rows=0 loops=1)                                   |
+|                 Sort Key: (random())                                                                                              |
+|                 Sort Method: quicksort  Memory: 25kB                                                                              |
+|                 ->  Result  (cost=0.85..4.21 rows=1 width=12) (actual time=0.039..0.039 rows=0 loops=1)                           |
+|                       One-Time Filter: $1                                                                                         |
+|                       ->  Nested Loop  (cost=0.85..4.21 rows=1 width=4) (never executed)                                          |
+|                             Join Filter: ((users_1.level >= (users_2.level - 5)) AND (users_1.level <= (users_2.level + 5)))      |
+|                             ->  Index Scan using online_index on users users_1  (cost=0.42..1.55 rows=1 width=8) (never executed) |
+|                                   Index Cond: (online = true)                                                                     |
+|                                   Filter: (user_id <> 123456)                                                                     |
+|                             ->  Index Scan using users_pkey on users users_2  (cost=0.42..2.64 rows=1 width=4) (never executed)   |
+|                                   Index Cond: (user_id = 123456)                                                                  |
+|   InitPlan 4 (returns $3)                                                                                                         |
+|     ->  CTE Scan on opponent  (cost=0.00..0.02 rows=1 width=4) (actual time=0.061..0.061 rows=0 loops=1)                          |
+|   ->  Result  (cost=0.00..0.02 rows=1 width=48) (actual time=0.699..0.700 rows=1 loops=1)                                         |
+| Planning Time: 3.828 ms                                                                                                           |
+| Execution Time: 2.345 ms   
+
+3. Delete User: New Execution Time = 202 ms
 <br />explain
   SELECT users.user_id, characters.character_id, COALESCE(SUM(gold_ledger.gold), 0)
   FROM users
